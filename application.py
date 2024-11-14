@@ -1,4 +1,5 @@
 import argparse
+import os
 from server import application
 
 # run the application.
@@ -7,6 +8,9 @@ if __name__ == "__main__":
     parser.add_argument('-l', action='store_true')
     args = parser.parse_args()
     if args.l:
+        os.environ['FLASK_ENV'] = 'development'
+        print("local FLASK_ENV set to development")
+        print(f"FLASK_ENV: {os.getenv('FLASK_ENV')}")
         application.debug = True
         application.run(host='0.0.0.0',port=8000)    
     else:
