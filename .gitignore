@@ -1,0 +1,14 @@
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Pycache
+__pycache__/
+*.pyc
+
+# Virtualenv
+virt/
+
+# secrets
+secret.py
