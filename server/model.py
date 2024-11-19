@@ -25,6 +25,9 @@ class Cursor:
     def lastrowid(self):
         return self.cursor.lastrowid
     
+    def close(self):
+        self.cursor.close()
+    
     def __del__(self):
         server.db.connection.commit()
         self.cursor.close()

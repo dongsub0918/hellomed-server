@@ -17,9 +17,8 @@ instructions = '''
 
 # EB looks for an 'application' callable by default.
 application = flask.Flask(__name__)
-db = MySQL(application)
-
 application.config.from_object('server.config')
+db = MySQL(application)
 CORS(application, origins=["http://localhost:3000"])
 
 # add a rule for the index page.
