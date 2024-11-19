@@ -2,6 +2,7 @@
 
 import flask
 from flask_cors import CORS
+from flask_mysqldb import MySQL
 
 # index page texts
 header_text = '''
@@ -16,6 +17,7 @@ instructions = '''
 
 # EB looks for an 'application' callable by default.
 application = flask.Flask(__name__)
+db = MySQL(application)
 
 application.config.from_object('server.config')
 CORS(application, origins=["http://localhost:3000"])

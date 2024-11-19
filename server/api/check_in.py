@@ -12,7 +12,7 @@ def post_check_in():
         '''
         INSERT INTO check_ins (
         name, 
-        birthdate, 
+        birthDate, 
         phone, 
         email, 
         hearAboutUs, 
@@ -23,10 +23,10 @@ def post_check_in():
         reasonForVisit, 
         exposures, 
         recentTests, 
-        recenVisits)
+        recentVisits)
         VALUES (
         %(name)s, 
-        %(birthdate)s, 
+        %(birthDate)s, 
         %(phone)s, 
         %(email)s, 
         %(hearAboutUs)s, 
@@ -37,7 +37,7 @@ def post_check_in():
         %(reasonForVisit)s, 
         %(exposures)s, 
         %(recentTests)s, 
-        %(recenVisits)s)
+        %(recentVisits)s)
         ''',
         body
     )

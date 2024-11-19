@@ -1,4 +1,5 @@
 import pathlib
+import os
 
 # Root of this application, useful if it doesn't occupy an entire domain
 APPLICATION_ROOT = '/'
@@ -11,3 +12,13 @@ SESSION_COOKIE_NAME = 'login'
 SERVER_ROOT = pathlib.Path(__file__).resolve().parent
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+
+# MySQL configurations
+MYSQL_HOST = 'awseb-e-rfmhyj95ny-stack-awsebrdsdatabase-elupsf8vrtzc.cpq4akseqowa.us-east-2.rds.amazonaws.com'
+MYSQL_USER = 'hellomedrds'
+MYSQL_PASSWORD = '2023godluck'
+
+# production and development configuration
+    # must run the following command on commandline before running the server
+    # export FLASK_ENV=development
+MYSQL_DB = 'testdb' if os.getenv('FLASK_ENV') == 'development' else 'ebdb'
