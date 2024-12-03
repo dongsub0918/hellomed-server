@@ -68,9 +68,15 @@ def get_check_ins():
     cursor = server.model.Cursor()
     cursor.execute(
         '''
-        SELECT * FROM check_ins 
-        ORDER BY id DESC
-        LIMIT %(limit)s OFFSET %(offset)s
+        SELECT
+        id,
+        name,
+        birthDate,
+        email,
+        reasonForVisit,
+        created_at
+        FROM check_ins 
+        ORDER BY id DESC LIMIT %(limit)s OFFSET %(offset)s
         ''',
         {
             'limit': size,
@@ -82,6 +88,30 @@ def get_check_ins():
     # If no check-ins are found for the requested page
     if not check_ins:
         return flask.jsonify({'error': 'No check-ins in requested page'}), 404
+    
+    # Fetch row count of check_ins
+    cursor.execute('SELECT COUNT(*) AS total_count FROM check_ins', {})
+    total_count = cursor.fetchone()['total_count']
+    
+    response = {
+        'checkIns': check_ins,
+        'totalCheckIns': total_count
+    }
 
     # Return the paginated results
-    return flask.jsonify(check_ins), 200
+    return flask.jsonify(response), 200
+
+@server.application.route("/api/v1/check-in/<int:id>/", methods=["GET"])
+def get_check_in(id):
+    cursor = server.model.Cursor()
+    cursor.execute(
+        '''
+        SELECT * FROM check_ins 
+        WHERE id = %(id)s
+        ''',
+        {
+            'id': id
+        }
+    )
+    check_in = cursor.fetchone()
+    return flask.jsonify(check_in), 200
