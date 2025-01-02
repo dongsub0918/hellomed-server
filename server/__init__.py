@@ -19,7 +19,7 @@ instructions = '''
 application = flask.Flask(__name__)
 application.config.from_object('server.config')
 db = MySQL(application)
-CORS(application, origins=["http://localhost:3000"])
+CORS(application, origins=["http://localhost:3000", "https://hello-med.com"])
 
 # add a rule for the index page.
 application.add_url_rule('/', 'index', (lambda: header_text +
