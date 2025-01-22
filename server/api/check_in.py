@@ -16,7 +16,8 @@ def post_check_in():
         phone, 
         email, 
         hearAboutUs, 
-        address, 
+        address,
+        zipcode,
         medicationAllergy, 
         preferredPharmacy, 
         homeMedication, 
@@ -31,6 +32,7 @@ def post_check_in():
         %(email)s, 
         %(hearAboutUs)s, 
         %(address)s, 
+        %(zipcode)s,
         %(medicationAllergy)s, 
         %(preferredPharmacy)s, 
         %(homeMedication)s, 
@@ -115,3 +117,18 @@ def get_check_in(id):
     )
     check_in = cursor.fetchone()
     return flask.jsonify(check_in), 200
+
+# @server.application.route("/api/v1/check-in/<int:id>/", methods=["DELETE"])
+# def delete_check_in(id):
+#     cursor = server.model.Cursor()
+#     cursor.execute(
+#         '''
+#         DELETE FROM check_ins
+#         WHERE id = %(id)s
+#         ''',
+#         {
+#             'id': id
+#         }
+#     )
+#     check_in = cursor.fetchone()
+#     return flask.jsonify(check_in), 201
