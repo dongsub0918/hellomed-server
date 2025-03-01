@@ -8,7 +8,10 @@ def convert_est_to_utc(est_datetime_str: str) -> str:
     if not est_datetime_str: return ""
 
     # Parse the EST datetime string (assumes format 'YYYY-MM-DDTHH:MM')
-    est_datetime = datetime.strptime(est_datetime_str, "%Y-%m-%dT%H:%M")
+    try:
+        est_datetime = datetime.strptime(est_datetime_str, "%Y-%m-%dT%H:%M")
+    except:
+        est_datetime = datetime.strptime(est_datetime_str, "%m/%d/%Y, %I:%M %p")
 
     # Convert EST (UTC-5) to UTC by adding 5 hours
     utc_datetime = est_datetime + timedelta(hours=5)
