@@ -22,7 +22,7 @@ application.config.from_object('server.config')
 cors_whitelist = [
     "http://localhost:3000",
     "https://www.hello-med.com",
-    "https://hellomed-client-owf8yuo46-dongsub-kims-projects-75b81901.vercel.app/"
+    "https://hellomed-client-owf8yuo46-dongsub-kims-projects-75b81901.vercel.app"
 ]
 
 db = MySQL(application)
