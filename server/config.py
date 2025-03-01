@@ -1,24 +1,14 @@
-import pathlib
+'''
+Flask application configuration.
+'''
+
 import os
+from dotenv import load_dotenv
 
-# Root of this application, useful if it doesn't occupy an entire domain
-APPLICATION_ROOT = '/'
-
-# Secret key for encrypting cookies
-SECRET_KEY = b'\xb7\x94x\x8c\x96\x96C.\xd4D%e/V\x86\xa6SJ\x8f\xb0=\x02\x19P'
-SESSION_COOKIE_NAME = 'login'
-
-# File Upload to var/uploads/
-SERVER_ROOT = pathlib.Path(__file__).resolve().parent
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
-MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+load_dotenv()
 
 # MySQL configurations
-MYSQL_HOST = 'awseb-e-rfmhyj95ny-stack-awsebrdsdatabase-elupsf8vrtzc.cpq4akseqowa.us-east-2.rds.amazonaws.com'
-MYSQL_USER = 'hellomedrds'
-MYSQL_PASSWORD = '2023godluck'
-
-# production and development configuration
-    # must run the following command on commandline before running the server
-    # export FLASK_ENV=development
-MYSQL_DB = 'testdb' if os.getenv('FLASK_ENV') == 'development' else 'ebdb'
+MYSQL_HOST = os.getenv('MYSQL_HOST')
+MYSQL_USER = os.getenv('MYSQL_USER')
+MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+MYSQL_DB = os.getenv('MYSQL_DB')

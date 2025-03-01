@@ -3,6 +3,7 @@
 import flask
 from flask_cors import CORS
 from flask_mysqldb import MySQL
+from flask_socketio import SocketIO
 
 # index page texts
 header_text = '''
@@ -18,8 +19,15 @@ instructions = '''
 # EB looks for an 'application' callable by default.
 application = flask.Flask(__name__)
 application.config.from_object('server.config')
+cors_whitelist = [
+    "http://localhost:3000",
+    "https://www.hello-med.com",
+    "https://hellomed-client-owf8yuo46-dongsub-kims-projects-75b81901.vercel.app/"
+]
+
 db = MySQL(application)
-CORS(application, origins=["http://localhost:3000", "https://www.hello-med.com"])
+CORS(application, origins=cors_whitelist)
+sio = SocketIO(application, cors_allowed_origins=cors_whitelist)
 
 # add a rule for the index page.
 application.add_url_rule('/', 'index', (lambda: header_text +

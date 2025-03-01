@@ -1,11 +1,15 @@
 import server
 from scipy.spatial.distance import cosine
-from flask import session
+from flask import session, request
+from flask_socketio import disconnect
+import jwt
 import requests
 from bs4 import BeautifulSoup
 import json
 import openai
 import MySQLdb.cursors
+from datetime import datetime, date
+import os
 
 
 # Database cursor interface
@@ -38,6 +42,18 @@ class Cursor:
         server.db.connection.commit()
         self.cursor.close()
 
+class Socket:
+    def __init__(self):
+        self.socket = server.sio
+
+    class CustomJSONEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, (datetime, date)):
+                return obj.isoformat()
+            return super().default(obj)
+
+    def emit(self, event, data):
+        self.socket.emit(event, json.loads(json.dumps(data, cls=self.CustomJSONEncoder)))
 
 # OpenAI chatbot interface
 class Chatbot:
