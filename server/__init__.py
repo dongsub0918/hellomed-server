@@ -27,7 +27,7 @@ cors_whitelist = [
 
 db = MySQL(application)
 CORS(application, origins=cors_whitelist)
-sio = SocketIO(application, cors_allowed_origins=cors_whitelist)
+sio = SocketIO(application, cors_allowed_origins=cors_whitelist, async_mode='eventlet')
 
 # add a rule for the index page.
 application.add_url_rule('/', 'index', (lambda: header_text +
