@@ -87,7 +87,7 @@ def post_check_in():
 
     server.sio.emit('new-checkin', check_in_to_emit)
 
-    return flask.jsonify({"message": "check-in submitted successfully"}), 200
+    return flask.jsonify({"id": inserted_check_in_id}), 200
 
 @server.application.route("/api/v1/check-in/", methods=["GET"])
 def get_check_ins():
