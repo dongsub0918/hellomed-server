@@ -26,7 +26,9 @@ def post_check_in():
         reasonForVisit, 
         exposures, 
         recentTests, 
-        recentVisits)
+        recentVisits,
+        idImage,
+        insuranceImage)
         VALUES (
         %(name)s, 
         %(birthDate)s, 
@@ -41,7 +43,9 @@ def post_check_in():
         %(reasonForVisit)s, 
         %(exposures)s, 
         %(recentTests)s, 
-        %(recentVisits)s)
+        %(recentVisits)s,
+        %(idImage)s,
+        %(insuranceImage)s)
         ''',
         body
     )
@@ -174,6 +178,5 @@ def get_check_in(id):
                 'id': id
             }
         )
-
 
     return flask.jsonify(check_in), 200

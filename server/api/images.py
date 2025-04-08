@@ -19,7 +19,7 @@ def presigned_url_for_post():
         file_type
     )
 
-    return flask.jsonify({"presignedURL": presigned_url})
+    return flask.jsonify({"presignedUrl": presigned_url})
 
 @server.application.route("/api/v1/images/presigned_url/", methods=["GET"])
 def presigned_url_for_get():
@@ -28,14 +28,13 @@ def presigned_url_for_get():
     """
     # Fetch the file key and type from the request body
     file_key = flask.request.args.get("fileKey", type=str)
-    file_type = flask.request.args.get("fileType", type=str)
 
     # Generate a pre-signed URL for PUT request
     aws_client = server.model.AWSClient()
     presigned_url = aws_client.generate_presigned_url(
         "get_object",
         file_key,
-        file_type
+        ""
     )
 
-    return flask.jsonify({"fileURL": presigned_url})
+    return flask.jsonify({"presignedUrl": presigned_url})
