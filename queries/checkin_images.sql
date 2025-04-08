@@ -1,4 +1,4 @@
-ALTER TABLE testdb.check_ins
+ALTER TABLE ebdb.check_ins
 ADD COLUMN idImage TINYINT(1) NOT NULL DEFAULT 0;
-ALTER TABLE testdb.check_ins
+ALTER TABLE ebdb.check_ins
 ADD COLUMN insuranceImage TINYINT(1) NOT NULL DEFAULT 0;
