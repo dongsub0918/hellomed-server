@@ -28,7 +28,8 @@ def post_check_in():
         recentTests, 
         recentVisits,
         idImage,
-        insuranceImage)
+        insuranceImageFront,
+        insuranceImageBack)
         VALUES (
         %(name)s, 
         %(birthDate)s, 
@@ -45,7 +46,8 @@ def post_check_in():
         %(recentTests)s, 
         %(recentVisits)s,
         %(idImage)s,
-        %(insuranceImage)s)
+        %(insuranceImageFront)s,
+        %(insuranceImageBack)s)
         ''',
         body
     )
