@@ -58,6 +58,7 @@ class Socket:
     def emit(self, event, data):
         self.socket.emit(event, json.loads(json.dumps(data, cls=self.CustomJSONEncoder)))
 
+# AWS SDK S3 interface
 class AWSClient:
     def __init__(self):
         self.s3 = boto3.client(
@@ -66,9 +67,9 @@ class AWSClient:
             config=Config(signature_version='s3v4')
         )
 
-    def generate_presigned_url(self, intention, file_key, file_type):
+    def generate_presigned_url(self, intention, file_key, file_type, public=False):
         params = {
-            "Bucket": os.getenv("S3_BUCKET_NAME"),
+            "Bucket": os.getenv("S3_PUBLIC_BUCKET_NAME") if public else os.getenv("S3_BUCKET_NAME"),
             "Key": file_key,
         }
         if intention == "put_object":
@@ -80,9 +81,9 @@ class AWSClient:
             ExpiresIn=3600
         )
 
-    def delete_object(self, key):
+    def delete_object(self, key, public=False):
         self.s3.delete_object(
-            Bucket=os.getenv('S3_BUCKET_NAME'),
+            Bucket=os.getenv('S3_PUBLIC_BUCKET_NAME') if public else os.getenv('S3_BUCKET_NAME'),
             Key=key
         )
 

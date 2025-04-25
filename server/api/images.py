@@ -10,13 +10,15 @@ def presigned_url_for_post():
     body = flask.request.get_json()
     file_key = body["fileKey"]
     file_type = body["fileType"]
-
+    public_upload = body["publicUpload"]
+    
     # Generate a pre-signed URL for PUT request
     aws_client = server.model.AWSClient()
     presigned_url = aws_client.generate_presigned_url(
         "put_object",
         file_key,
-        file_type
+        file_type,
+        public_upload
     )
 
     return flask.jsonify({"presignedUrl": presigned_url})
