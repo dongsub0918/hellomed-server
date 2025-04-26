@@ -15,7 +15,7 @@ def get_carousel_items():
 @server.application.route("/api/v1/carousel/", methods=["PUT"])
 def put_carousel_items():
     """
-    Update carousel items in the database.
+    Update carousel items in the database and clean up unused images.
     """
     try:
         body = flask.request.get_json()
@@ -25,7 +25,7 @@ def put_carousel_items():
         cursor.execute("DELETE FROM carousel_items", {})
         
         # Then insert new items
-        for item in body:
+        for item in body["carouselItems"]:
             cursor.execute(
                 """
                 INSERT INTO carousel_items (title, description, image_src, href)
@@ -38,6 +38,11 @@ def put_carousel_items():
                     "href": item.get("href")
                 }
             )
+        
+        # Delete unused images from S3
+        aws_client = server.model.AWSClient()
+        for key in body["keysToDelete"]:
+            aws_client.delete_object(key, public=True)
         
         return flask.jsonify({"message": "Carousel items updated successfully"}), 200
     except Exception as e:
