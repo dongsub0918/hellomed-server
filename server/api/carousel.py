@@ -28,13 +28,13 @@ def put_carousel_items():
         for item in body["carouselItems"]:
             cursor.execute(
                 """
-                INSERT INTO carousel_items (title, description, image_src, href)
-                VALUES (%(title)s, %(description)s, %(image_src)s, %(href)s)
+                INSERT INTO carousel_items (title, description, imageSrc, href)
+                VALUES (%(title)s, %(description)s, %(imageSrc)s, %(href)s)
                 """,
                 {
                     "title": item.get("title", ""),
                     "description": item.get("description", ""),
-                    "image_src": item.get("imageSrc", ""),
+                    "imageSrc": item.get("imageSrc", ""),
                     "href": item.get("href")
                 }
             )
