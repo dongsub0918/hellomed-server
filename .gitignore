@@ -2,6 +2,7 @@
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+.ebextensions/*
 
 # Cache files
 __pycache__/
@@ -13,3 +14,6 @@ virt/
 
 # secrets
 .env
+
+# queries
+queries/*
