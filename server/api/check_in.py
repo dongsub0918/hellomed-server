@@ -182,3 +182,20 @@ def get_check_in(id):
         )
 
     return flask.jsonify(check_in), 200
+
+@server.application.route("/api/v1/check-in/<int:id>/", methods=["PATCH"])
+def patch_check_in(id):
+    flag_to_update = flask.request.json
+    cursor = server.model.Cursor()
+    cursor.execute(
+        f'''
+        UPDATE check_ins
+        SET {flag_to_update} = false
+        WHERE id = %(id)s
+        ''',
+        {
+            'id': id
+        }
+    )
+    return flask.jsonify({"Success": True}), 200
+    
