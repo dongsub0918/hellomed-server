@@ -3,61 +3,118 @@ import server
 from datetime import datetime, date
 from zoneinfo import ZoneInfo
 
-@server.application.route("/api/v1/check-in/", methods=["POST"])
-def post_check_in():
-    '''
-    Intake body from POST request and insert into database.
-    '''
-    body = flask.request.json
-    cursor = server.model.Cursor()
-    cursor.execute(
-        '''
+from server.api.check_in_helpers import (
+    build_insert_row,
+    resolve_form_type,
+    validate_check_in_body,
+)
+
+INSERT_CHECK_IN_SQL = """
         INSERT INTO check_ins (
-        name, 
-        birthDate, 
-        phone, 
-        email, 
-        hearAboutUs, 
+        formType,
+        name,
+        birthDate,
+        phone,
+        email,
+        hearAboutUs,
         address,
         zipcode,
-        medicationAllergy, 
-        preferredPharmacy, 
-        homeMedication, 
-        reasonForVisit, 
-        exposures, 
-        recentTests, 
+        medicationAllergy,
+        preferredPharmacy,
+        homeMedication,
+        reasonForVisit,
+        exposures,
+        recentTests,
         recentVisits,
         idImage,
         insuranceImageFront,
-        insuranceImageBack)
+        insuranceImageBack,
+        medicalHistoryChanged,
+        medicalHistoryDescription,
+        medicationsChanged,
+        medicationsList,
+        medicationAllergyType)
         VALUES (
-        %(name)s, 
-        %(birthDate)s, 
-        %(phone)s, 
-        %(email)s, 
-        %(hearAboutUs)s, 
-        %(address)s, 
+        %(formType)s,
+        %(name)s,
+        %(birthDate)s,
+        %(phone)s,
+        %(email)s,
+        %(hearAboutUs)s,
+        %(address)s,
         %(zipcode)s,
-        %(medicationAllergy)s, 
-        %(preferredPharmacy)s, 
-        %(homeMedication)s, 
-        %(reasonForVisit)s, 
-        %(exposures)s, 
-        %(recentTests)s, 
+        %(medicationAllergy)s,
+        %(preferredPharmacy)s,
+        %(homeMedication)s,
+        %(reasonForVisit)s,
+        %(exposures)s,
+        %(recentTests)s,
         %(recentVisits)s,
         %(idImage)s,
         %(insuranceImageFront)s,
-        %(insuranceImageBack)s)
-        ''',
-        body
-    )
+        %(insuranceImageBack)s,
+        %(medicalHistoryChanged)s,
+        %(medicalHistoryDescription)s,
+        %(medicationsChanged)s,
+        %(medicationsList)s,
+        %(medicationAllergyType)s)
+        """
+
+
+def _format_check_in_for_emit(check_in_to_emit):
+    if not check_in_to_emit:
+        return check_in_to_emit
+
+    if isinstance(check_in_to_emit.get("birthDate"), date):
+        birth_date_dt = datetime.combine(
+            check_in_to_emit["birthDate"], datetime.min.time()
+        )
+        birth_date_dt = birth_date_dt.replace(tzinfo=ZoneInfo("UTC"))
+        check_in_to_emit["birthDate"] = birth_date_dt.strftime("%Y-%m-%d %Z")
+
+    if isinstance(check_in_to_emit.get("created_at"), datetime):
+        if check_in_to_emit["created_at"].tzinfo is None:
+            check_in_to_emit["created_at"] = check_in_to_emit["created_at"].replace(
+                tzinfo=ZoneInfo("UTC")
+            )
+        check_in_to_emit["created_at"] = check_in_to_emit["created_at"].strftime(
+            "%Y-%m-%d %H:%M:%S %Z"
+        )
+
+    return check_in_to_emit
+
+
+@server.application.route("/api/v1/check-in/", methods=["POST"])
+def post_check_in():
+    """
+    Intake body from POST request and insert into database.
+
+    Requires formType (or form_type): 'new' | 'returning'. This is the only
+    way to distinguish check-in variants.
+    """
+    body = flask.request.json or {}
+    form_type = resolve_form_type(body)
+    if form_type is None:
+        return flask.jsonify(
+            {
+                "error": "formType is required and must be 'new' or 'returning'",
+            }
+        ), 400
+
+    validation_error = validate_check_in_body(body, form_type)
+    if validation_error:
+        return flask.jsonify({"error": validation_error}), 400
+
+    row = build_insert_row(body, form_type)
+    cursor = server.model.Cursor()
+    cursor.execute(INSERT_CHECK_IN_SQL, row)
     inserted_check_in_id = cursor.lastrowid()
 
-    # For real-time updates, emit the new check-in to the client
     cursor.execute(
-        '''
+        """
         SELECT
         id,
+        formType,
         name,
         birthDate,
         email,
@@ -66,136 +123,92 @@ def post_check_in():
         viewed
         FROM check_ins
         WHERE id = %(id)s
-        ''',
-        {
-            'id': inserted_check_in_id
-        }
+        """,
+        {"id": inserted_check_in_id},
     )
-    check_in_to_emit = cursor.fetchone()
-    
-    if check_in_to_emit:
-        # Handle birthDate (datetime.date object)
-        if isinstance(check_in_to_emit['birthDate'], date):
-            # Convert to datetime (assuming midnight as the time)
-            birth_date_dt = datetime.combine(check_in_to_emit['birthDate'], datetime.min.time())
-            
-            # Make timezone-aware (assuming UTC)
-            birth_date_dt = birth_date_dt.replace(tzinfo=ZoneInfo("UTC"))
-            
-            # Format with timezone info
-            check_in_to_emit['birthDate'] = birth_date_dt.strftime('%Y-%m-%d %Z')
+    check_in_to_emit = _format_check_in_for_emit(cursor.fetchone())
 
-        # Handle created_at (datetime.datetime object)
-        if isinstance(check_in_to_emit['created_at'], datetime):
-            if check_in_to_emit['created_at'].tzinfo is None:
-                check_in_to_emit['created_at'] = check_in_to_emit['created_at'].replace(tzinfo=ZoneInfo("UTC"))
-            check_in_to_emit['created_at'] = check_in_to_emit['created_at'].strftime('%Y-%m-%d %H:%M:%S %Z')
+    server.sio.emit("new-checkin", check_in_to_emit)
 
-    server.sio.emit('new-checkin', check_in_to_emit)
+    return flask.jsonify({"id": inserted_check_in_id, "formType": row["formType"]}), 200
 
-    return flask.jsonify({"id": inserted_check_in_id}), 200
 
 @server.application.route("/api/v1/check-in/", methods=["GET"])
 def get_check_ins():
-    '''
+    """
     Get submitted check-ins by page and size. Size per page is defaulted to 20.
-    '''
-    # Initialize flask request arguments
-    size = flask.request.args.get(
-        "size",
-        default=15,
-        type=int
-    )
-    page = flask.request.args.get(
-        "page",
-        default=0,
-        type=int
-    )
+    """
+    size = flask.request.args.get("size", default=15, type=int)
+    page = flask.request.args.get("page", default=0, type=int)
 
-    # Sanity check for appropriate flask request arguments
     if page < 0:
-        return flask.jsonify({'error': 'invalid pagination args'}), 400
+        return flask.jsonify({"error": "invalid pagination args"}), 400
 
-    # Fetch check-ins from the database with proper pagination
     cursor = server.model.Cursor()
     cursor.execute(
-        '''
+        """
         SELECT
         id,
+        formType,
         name,
         birthDate,
         email,
         reasonForVisit,
         created_at,
         viewed
-        FROM check_ins 
+        FROM check_ins
         ORDER BY id DESC LIMIT %(limit)s OFFSET %(offset)s
-        ''',
-        {
-            'limit': size,
-            'offset': page * size
-        }
+        """,
+        {"limit": size, "offset": page * size},
     )
     check_ins = cursor.fetchall()
 
-    # If no check-ins are found for the requested page
     if not check_ins:
-        return flask.jsonify({'error': 'No check-ins in requested page'}), 404
-    
-    # Fetch row count of check_ins
-    cursor.execute('SELECT COUNT(*) AS total_count FROM check_ins', {})
-    total_count = cursor.fetchone()['total_count']
-    
-    response = {
-        'checkIns': check_ins,
-        'totalCheckIns': total_count
-    }
+        return flask.jsonify({"error": "No check-ins in requested page"}), 404
 
-    # Return the paginated results
+    cursor.execute("SELECT COUNT(*) AS total_count FROM check_ins", {})
+    total_count = cursor.fetchone()["total_count"]
+
+    response = {"checkIns": check_ins, "totalCheckIns": total_count}
+
     return flask.jsonify(response), 200
+
 
 @server.application.route("/api/v1/check-in/<int:id>/", methods=["GET"])
 def get_check_in(id):
     cursor = server.model.Cursor()
     cursor.execute(
-        '''
-        SELECT * FROM check_ins 
+        """
+        SELECT * FROM check_ins
         WHERE id = %(id)s
-        ''',
-        {
-            'id': id
-        }
+        """,
+        {"id": id},
     )
     check_in = cursor.fetchone()
 
-    # If check-in is found and not viewed, update viewed to 1
-    if check_in and not check_in['viewed']:
+    if check_in and not check_in["viewed"]:
         cursor.execute(
-            '''
+            """
             UPDATE check_ins
             SET viewed = 1
             WHERE id = %(id)s
-            ''',
-            {
-                'id': id
-            }
+            """,
+            {"id": id},
         )
 
     return flask.jsonify(check_in), 200
+
 
 @server.application.route("/api/v1/check-in/<int:id>/", methods=["PATCH"])
 def patch_check_in(id):
     flag_to_update = flask.request.json
     cursor = server.model.Cursor()
     cursor.execute(
-        f'''
+        f"""
         UPDATE check_ins
         SET {flag_to_update} = false
         WHERE id = %(id)s
-        ''',
-        {
-            'id': id
-        }
+        """,
+        {"id": id},
     )
     return flask.jsonify({"Success": True}), 200
-    
